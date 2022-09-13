@@ -4,5 +4,5 @@ export default interface IPickerToolbarProps {
     className?: string;
     style?: React.CSSProperties;
     orientation?: "portrait" | "landscape";
-    color?: "inherit" | "success" | "error" | "primary" | "secondary" | "info";
+    color: "inherit" | "success" | "error" | "primary" | "secondary" | "info";
 }

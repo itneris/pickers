@@ -1,18 +1,51 @@
-﻿import React, { useCallback, useMemo, useRef, useState } from "react";
+import "./DatePicker.css";
+import "../common/base.css";
+import React, { ButtonHTMLAttributes, useCallback, useMemo, useRef, useState } from "react";
 import PickerToolbar from "../common/PickerToolbar";
 import PickerContent from "../common/PickerContent";
 import IDatePickerProps from "../props/IDatePickerProps";
-import { Button, IconButton, Typography } from "@mui/material";
+import { Button, IconButton, styled, Theme, Typography, useTheme } from "@mui/material";
 import { format, addMonths, addYears, startOfDay, startOfYear, startOfMonth, startOfWeek, addDays, endOfMonth, eachDayOfInterval, endOfWeek } from "date-fns";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
+const { ru } = require('date-fns/locale');
+
+const DayText = styled('p')(
+    ({ theme }: { theme: Theme }) => ({
+        fontFamily: theme.typography.body2.fontFamily,
+        fontSize: theme.typography.body2.fontSize,
+        fontWeight: theme.typography.body2.fontWeight,
+        letterSpacing: theme.typography.body2.letterSpacing,
+        lineHeight: theme.typography.body2.lineHeight,
+        color: "inherit"
+    })
+);
+
+interface IDayButtonProps extends React.DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> {
+    selected: boolean,
+    current: boolean,
+    color: "success" | "error" | "primary" | "secondary" | "info"
+}
+
+const DayButton = styled('button', {
+    shouldForwardProp: (prop) => prop !== 'selected' && prop !== 'current' && prop !== "color"
+})<IDayButtonProps>(
+    ({ theme, selected, current, color }: { theme: Theme, selected: boolean, current: boolean, color: "success" | "error" | "primary" | "secondary" | "info" }) => ({
+        color: selected ? `${theme.palette[color].contrastText} !important` : undefined,
+        backgroundColor: selected ? theme.palette[color].main : undefined,
+        border: current ? `1px solid ${theme.palette[color].main}` : undefined,
+        "&:hover": {
+            backgroundColor: selected ? undefined : theme.palette.action.hover
+        }
+    })
+)
 
 const DatePicker = (props: IDatePickerProps) => {
     const dayId = useRef<number>(-1);
+    const theme = useTheme();
 
     const [pickerMonth, setPickerMonth] = useState<Date | null>(null);
-    const [selectedDate, setSelectedDate] = useState<Date | null>(props.value);
-    const [curSelectedDate, setCurSelectedDate] = useState<Date | null>();
-    const [currentView, setCurrentView] = useState<"none" | "date" | "year" | "month" | "hours" | "minutes">("none");
+    const [selectedDate, setSelectedDate] = useState<Date | null>(props.value === null ? null : new Date(props.value));
+    const [currentView, setCurrentView] = useState<"date" | "year" | "month" | "hours" | "minutes">("date");
 
     //TODO
     const handleYearClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -23,31 +56,30 @@ const DatePicker = (props: IDatePickerProps) => {
     const handleYearClicked = useCallback((year: number) => { }, []);
 
     const getMonthStart = useCallback((month: number): Date => {
-        const firstMonthDate = new Date();
-        firstMonthDate.setDate(1);
-        const monthStartDate = pickerMonth ?? firstMonthDate;
+        const monthStartDate = pickerMonth ?? startOfMonth(new Date());
         // Return the min supported datetime of the calendar when this is year 1 and first month!
-        if (pickerMonth !== null && pickerMonth.getFullYear() == 1 && pickerMonth.getMonth() == 1) {
+        if (pickerMonth !== null && pickerMonth.getFullYear() === 1 && pickerMonth.getMonth() === 1) {
             return new Date(1, 1, 1, 0, 0, 0, 0);
         }
         return addMonths(monthStartDate, month);
-    }, []);
+    }, [pickerMonth]);
 
     const getMonthEnd = useCallback((month: number): Date => {
         const monthStartDate = pickerMonth ?? startOfMonth(new Date());
         return endOfMonth(addMonths(monthStartDate, month));
-    }, []);
+    }, [pickerMonth]);
 
     const getFormattedYearString = useCallback(() => {
         return format(getMonthStart(0), "yyyy");
     }, [getMonthStart]);
 
     const getTitleDateString = useCallback((date: Date | null) => {
-        if (date === null) {
-            return null;
+        const dateToFormat = date ?? selectedDate;
+        if (dateToFormat === null) {
+            return "";
         }
-        return format(date, "dd.MM.yyyy");
-    }, []);
+        return format(dateToFormat, "eee, dd MMM", { locale: ru });
+    }, [selectedDate]);
 
 
     //TODO
@@ -70,17 +102,17 @@ const DatePicker = (props: IDatePickerProps) => {
     }, [props.maxDate]);
 
     const getYearTypo = useCallback((year: number) => {
-        if (year == getMonthStart(0).getFullYear())
+        if (year === getMonthStart(0).getFullYear())
             return "h5";
         return "subtitle1";
     }, [getMonthStart]);
 
     const getYearClasses = useCallback((year: number) => {
-        if (year == getMonthStart(0).getFullYear())
+        if (year === getMonthStart(0).getFullYear())
             //TODO посмотреть стили текста
             return `itn-picker-year-selected itn-${props.color}-text`;
         return undefined;
-    }, [getMonthStart]);
+    }, [getMonthStart, props.color]);
 
     const getCalendarYear = useCallback((year: number) => {
         const date = selectedDate ?? startOfDay(new Date());
@@ -108,7 +140,7 @@ const DatePicker = (props: IDatePickerProps) => {
             );
         }
         return years;
-    }, [getYearTypo, getYearClasses, getCalendarYear]);
+    }, [getYearTypo, getYearClasses, getCalendarYear, handleYearClicked, maxYear, minYear]);
 
     const allMonths = useMemo(() => {
         const current = getMonthStart(0);
@@ -122,12 +154,12 @@ const DatePicker = (props: IDatePickerProps) => {
     }, [getMonthStart]);
 
     const getMonthName = useCallback((month: Date) => {
-        return format(month, "MMMM");
+        return format(month, "LLLL", { locale: ru });
     }, []);
 
     const getMonthNameByNumber = useCallback((num: number) => {
         const month = getMonthStart(num);
-        return format(month, "MMMM");
+        return format(month, "LLLL yyyy", { locale: ru });
     }, [getMonthStart]);
 
     const getNextView = useCallback(() => {
@@ -167,7 +199,7 @@ const DatePicker = (props: IDatePickerProps) => {
             //TODO посмотреть стили текста
             return `itn-picker-month-selected itn-${props.color}-text`;
         return undefined;
-    }, [getMonthStart]);
+    }, [getMonthStart, props.color]);
 
     const getAbbreviatedMonthName = useCallback((month: Date) => {
         return format(month, "MM");
@@ -239,7 +271,7 @@ const DatePicker = (props: IDatePickerProps) => {
             <div className="itn-picker-month-container">
             </div>
         </>);
-    }, [handlePreviousYearClick, handleNextYearClick, handleYearClick, getMonthTypo, getMonthClasses, getAbbreviatedMonthName]);
+    }, [handlePreviousYearClick, handleNextYearClick, handleYearClick, getMonthTypo, getMonthClasses, getAbbreviatedMonthName, allMonths, getCalendarYear, getMonthName, handleMonthSelected, pickerMonth, props.fixYear]);
 
     const getWeek = useCallback((month: number, index: number) => {
         if (index < 0 || index > 5) { 
@@ -247,7 +279,7 @@ const DatePicker = (props: IDatePickerProps) => {
         }
         let weekDays: Date[] = [];
         const monthFirst = getMonthStart(month);
-        const weekFirst = startOfWeek(addDays(monthFirst, index * 7));
+        const weekFirst = startOfWeek(addDays(monthFirst, index * 7), { locale: ru });
         for (let i = 0; i < 7; i++) {
             weekDays.push(addDays(weekFirst, i));
         }
@@ -260,33 +292,53 @@ const DatePicker = (props: IDatePickerProps) => {
             classes += " itn-hidden";
             return classes
         }
-        if ((startOfDay(selectedDate) === day && curSelectedDate === null) || startOfDay(curSelectedDate) === day) {
+        if ((selectedDate === null && props.value !== null && new Date(props.value).getDate() === day.getDate()) || selectedDate?.getDate() === day.getDate()) {
             classes += " itn-selected";
-            classes += ` itn-theme-${props.color}`;
+            classes += ` selected-day`;
             return classes;
         }
-        if (day == startOfDay(new Date())) {
+        if (day.getDate() === (new Date()).getDate()) {
             classes += " itn-current itn-button-outlined";
-            classes += ` itn-button-outlined-${props.color} itn-${props.color}-text`;
+            classes += ` current-day`;
             return classes;
         }
         return classes;
-    }, [getMonthStart, curSelectedDate, selectedDate]);
+    }, [getMonthStart, props.value, selectedDate, getMonthEnd]);
+
+    const submitValue = useCallback((dateTime: Date) => {
+        if (props.readOnly) {
+            return;
+        }
+
+        let changedDate = dateTime;
+
+        if (props.fixYear !== null || props.fixMonth !== null || props.fixDay !== null) {
+            changedDate = new Date(props.fixYear ?? dateTime.getFullYear(),
+                props.fixMonth ?? dateTime.getMonth(),
+                props.fixDay ?? dateTime.getDate(),
+                dateTime.getHours(),
+                dateTime.getMinutes(),
+                dateTime.getSeconds(),
+                dateTime.getMilliseconds());
+        }
+
+        props.onChange!(changedDate.toISOString());
+        //setSelectedDate(changedDate);
+    }, [props.readOnly, props.fixDay, props.fixMonth, props.fixYear, props.onChange]);
 
     //TODO
     const handleDayClicked = useCallback((dateTime: Date) => {
-        setCurSelectedDate(dateTime);
-        /*if (props.pickerActions === null || props.autoClose || props.pickerVariant === "static")
+        setSelectedDate(dateTime);
+        if (props.pickerActions === undefined || props.autoClose || props.pickerVariant === "static")
         {
-            Submit();
+            submitValue(dateTime);
 
             if (props.pickerVariant !== "static")
             {
-                await Task.Delay(ClosingDelay);
-                Close(false);
+                props.onClose!(false);
             }
-        }*/
-    }, [setCurSelectedDate]);
+        }
+    }, [setSelectedDate, submitValue, props.onClose, props.autoClose, props.pickerVariant, props.pickerActions]);
 
     const getCalendarDayOfMonth = useCallback((date: Date) => {
         return date.getDate();
@@ -298,8 +350,9 @@ const DatePicker = (props: IDatePickerProps) => {
             start: startOfWeek(now),
             end: endOfWeek(now)
         });
-        const daysNames = daysInWeek.map((d) => format(d, 'ddd'));
-        var dayNamesShifted = daysNames; // Shift(dayNamesNormal, (int)GetFirstDayOfWeek());
+        const daysNames = daysInWeek.map((d) => format(d, 'eee', { locale: ru }));
+        const firstDay = daysNames.shift();
+        const dayNamesShifted = [...daysNames, firstDay]; //TODO shift not-hardcode Shift(dayNamesNormal, (int)GetFirstDayOfWeek());
         return dayNamesShifted;
     }, []);
 
@@ -312,12 +365,12 @@ const DatePicker = (props: IDatePickerProps) => {
         for (let week = 0; week < 6; week++)
         {
             const tempWeek = week;
-            const firstMonthFirstYear = pickerMonth !== undefined && pickerMonth.getFullYear() == 1 && pickerMonth.getMonth() == 1;
+            const firstMonthFirstYear = pickerMonth !== null && pickerMonth.getFullYear() === 1 && pickerMonth.getMonth() === 1;
 
             if (props.showWeekNumbers)
             {
                 renderWeeks.push(<div className="itn-picker-calendar-week">
-                    <Typography className="itn-picker-calendar-week-text" variant="caption">@GetWeekNumber(tempMonth, tempWeek)</Typography>
+                    <Typography className="itn-picker-calendar-week-text" variant="caption">{/*getWeekNumber(tempMonth, tempWeek)*/}</Typography>
                 </div>)
                 
             }
@@ -326,25 +379,37 @@ const DatePicker = (props: IDatePickerProps) => {
                 
                 if (tempId !== 0 || !firstMonthFirstYear) {
                     const selectedDay = !firstMonthFirstYear ? day : addDays(day, -1);
+                    let classes = !firstMonthFirstYear || day.getDate() === pickerMonth?.getDate() ? getDayClasses(tempMonth, day) : getDayClasses(tempMonth, selectedDay);
+                    const isSelected = classes.includes('selected-day');
+                    const isCurrent = classes.includes('current-day');
+                    classes = classes.replace(" selected-day", "").replace("current-day", "");
                     renderWeeks.push(
-                        <button
-                            key={!firstMonthFirstYear ? selectedDay.getDate() : tempId}
+                        <DayButton
+                            selected={isSelected}
+                            current={isCurrent}
+                            color={props.color!}
+                            key={!firstMonthFirstYear ? selectedDay.toISOString() : tempId}
                             type="button"
                             //TODO WTF style="--day-id: @(!firstMonthFirstYear ? tempId: tempId + 1);"
-                            className={`itn-button-root itn-icon-button itn-ripple itn-ripple-icon itn-picker-calendar-day ${!firstMonthFirstYear || day.getDay() === pickerMonth.getDate() ? getDayClasses(tempMonth, day) : getDayClasses(tempMonth, selectedDay)}`}
+                            //className={`itn-button-root itn-icon-button itn-ripple itn-ripple-icon itn-picker-calendar-day ${!firstMonthFirstYear || day.getDay() === pickerMonth.getDate() ? getDayClasses(tempMonth, day) : getDayClasses(tempMonth, selectedDay)}`}
+                            className={`itn-icon-button itn-ripple itn-ripple-icon itn-picker-calendar-day ${classes}`}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 const d = selectedDay;
                                 handleDayClicked(d);
                             }}
-                            aria-label={format(selectedDay, "dddd, dd MMMM yyyy")}
-                            onMouseOver={(e) => {
-                                (e.currentTarget.closest('.mud-picker-calendar-content') as HTMLElement).style['--selected-day'] = !firstMonthFirstYear ? tempId : tempId + 1;
+                            style={{
+                                color: theme.palette.text.primary
                             }}
-                            disabled={(selectedDay < props.minDate) || (selectedDay > props.maxDate) || props.isDateDisabledFunc(selectedDay)}
+                            aria-label={format(selectedDay, "eeee, dd MMMM yyyy", { locale: ru })}
+                            onMouseOver={(e) => {
+                                //@ts-ignore
+                                (e.currentTarget.closest('.itn-picker-calendar-content') as HTMLElement).style['--selected-day'] = !firstMonthFirstYear ? tempId : tempId + 1;
+                            }}
+                            disabled={(selectedDay < props.minDate!) || (selectedDay > props.maxDate!) || props.isDateDisabledFunc!(selectedDay)}
                         >
-                            <p className="itn-typography itn-typography-body2 itn-inherit-text">{getCalendarDayOfMonth(selectedDay)}</p>
-                        </button >
+                            <DayText>{getCalendarDayOfMonth(selectedDay)}</DayText>
+                        </DayButton>
                     );
                 }
                 else {
@@ -356,7 +421,8 @@ const DatePicker = (props: IDatePickerProps) => {
                                 //@ts-ignore
                                 "--day-id": "1"
                             }}
-                            className="itn-button-root itn-icon-button itn-ripple itn-ripple-icon itn-picker-calendar-day itn-day"
+                            //className="itn-button-root itn-icon-button itn-ripple itn-ripple-icon itn-picker-calendar-day itn-day"
+                            className="itn-ripple itn-ripple-icon itn-picker-calendar-day itn-day"
                             aria-label=''
                             disabled
                         >
@@ -371,10 +437,11 @@ const DatePicker = (props: IDatePickerProps) => {
             <div /*TODO className={getCalendarHeaderClasses(tempMonth)}*/>
                 <div className="itn-picker-calendar-header-switch">
                     {
-                        props.fixMonth === undefined ?
+                        props.fixMonth === null ?
                             <>
                                 <IconButton 
                                     aria-label={prevLabel}
+                                    sx={{m: 1}}
                                     //TODO CLASSES
                                     className="itn-picker-nav-button-prev itn-flip-x-rtl"
                                     //TODO onClick={handlePreviousMonthClick}
@@ -391,7 +458,8 @@ const DatePicker = (props: IDatePickerProps) => {
                                 >
                                     <Typography variant="body1" align="center">{getMonthNameByNumber(tempMonth)}</Typography>
                                 </button>
-                                <IconButton 
+                                <IconButton
+                                    sx={{ m: 1 }}
                                     aria-label={nextLabel}
                                     className="itn-picker-nav-button-next itn-flip-x-rtl"
                                     //TODO onClick={handleNextMonthClick}
@@ -410,7 +478,7 @@ const DatePicker = (props: IDatePickerProps) => {
                         </div>
                     }
                     {
-                        abbreviatedDayNames.map(dayname => <Typography variant="caption" className="itn-day-label">{dayname}</Typography>)
+                        abbreviatedDayNames.map(dayname => <Typography key={"ds-" + dayname} color="textSecondary" variant="caption" className="itn-day-label">{dayname}</Typography>)
                     }
                 </div>
             </div>
@@ -420,14 +488,14 @@ const DatePicker = (props: IDatePickerProps) => {
                 </div>
             </div>
         </>);
-    }, [getMonthNameByNumber, pickerMonth, props.showWeekNumbers, props.isDateDisabledFunc, getCalendarDayOfMonth, getWeek]);
+    }, [getMonthNameByNumber, pickerMonth, props.showWeekNumbers, props.isDateDisabledFunc, getCalendarDayOfMonth, getWeek, props.color, getDayClasses, abbreviatedDayNames, handleDayClicked, props.fixMonth, props.maxDate, props.minDate, theme.palette.text.primary]);
 
     const renderPickerContent = useMemo(() => {
         if (pickerMonth !== null && pickerMonth.getFullYear() === 1 && pickerMonth.getMonth() === 1) {
             dayId.current = -1;
         }
         let content: React.ReactNode[] = [];
-        for (let displayMonth = 0; displayMonth < props.displayMonths; ++displayMonth) {
+        for (let displayMonth = 0; displayMonth < props.displayMonths!; ++displayMonth) {
             const tempMonth = displayMonth;
             content.push(
                 <div key={"itn-m-" + displayMonth} className="itn-picker-calendar-container">
@@ -445,11 +513,11 @@ const DatePicker = (props: IDatePickerProps) => {
             );
         }
         return content;
-    }, [pickerMonth, currentView]);
+    }, [pickerMonth, currentView, props.displayMonths, renderDates, renderMonths, renderYears]);
 
     return (
         <>
-            <PickerToolbar className="itn-picker-datepicker-toolbar" disableToolbar={props.disableToolbar} orientation={props.orientation} color={props.color}>
+            <PickerToolbar className="itn-picker-datepicker-toolbar" disableToolbar={props.disableToolbar} orientation={props.orientation} color={props.color!}>
                 <Button variant="text" color="inherit" className="itn-button-year" onClick={handleYearClick}>{getFormattedYearString()}</Button>
                 <Button variant="text" color="inherit" className="itn-button-date" onClick={handleFormattedDateClick}>{getTitleDateString(null)}</Button>
             </PickerToolbar>
@@ -473,7 +541,18 @@ DatePicker.defaultProps = {
     color: "primary",
     displayMonths: 1,
     showWeekNumbers: false,
-    isDateDisabledFunc: () => false
+    isDateDisabledFunc: () => false,
+    minDate: new Date(1, 1, 1, 0, 0, 0, 0),
+    maxDate: new Date(9999, 12, 31, 23, 59, 59, 999),
+    value: null,
+    pickerVariant: "inline",
+    autoClose: true,
+    readOnly: false,
+    onClose: () => { },
+    fixMonth: null,
+    fixYear: null,
+    fixDay: null,
+    onChange: () => { }
 };
 
 export default DatePicker;

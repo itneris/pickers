@@ -1,0 +1,93 @@
+.itn-picker-calendar-content {
+    display: grid;
+    --selected-day: 0;
+    grid-column-gap: 10px;
+    grid-template-columns: auto;
+}
+
+.itn-picker-datepicker-toolbar {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+}
+
+    .itn-picker-datepicker-toolbar .itn-button-year {
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.75;
+        letter-spacing: .00938em;
+        /*TODO color*/
+        color: white;
+    }
+
+    .itn-picker-datepicker-toolbar .itn-button-date {
+        font-size: 2.125rem;
+        font-weight: 400;
+        line-height: 1.17;
+        letter-spacing: .00735em;
+        text-transform: none;
+        /*TODO color*/
+        color: white;
+    }
+
+.itn-picker-calendar-header-switch {
+    display: flex;
+    margin-top: 4px;
+    align-items: center;
+    margin-bottom: 8px;
+    justify-content: space-between;
+}
+
+.itn-picker-slide-transition {
+    display: block;
+    position: relative;
+}
+
+.itn-picker-calendar-header-switch .itn-picker-calendar-header-transition {
+    width: 100%;
+    height: 23px;
+    overflow: hidden;
+}
+
+.itn-picker-calendar-header-day {
+    display: flex;
+    max-height: 16px;
+    align-items: center;
+    justify-content: center;
+}
+
+    .itn-picker-calendar-header-day .itn-day-label {
+        width: 36px;
+        margin: 0 2px;
+        text-align: center;
+    }
+
+
+.itn-picker-calendar .itn-day {
+    width: 36px;
+    height: 36px;
+    margin: 0 2px;
+    padding: 0;
+    font-size: .75rem;
+    font-weight: 500;
+}
+
+    .itn-picker-calendar .itn-day.itn-hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .itn-picker-calendar .itn-day.itn-selected {
+        font-weight: 500;
+    }
+
+.itn-icon-button {
+    flex: 0 0 auto;
+    padding: 12px;
+    overflow: visible;
+    font-size: 1.5rem;
+    text-align: center;
+    transition: background-color 150ms cubic-bezier(.4,0,.2,1) 0ms;
+    border-radius: 50%;
+}
+
+/*TODO Ripple effect*/

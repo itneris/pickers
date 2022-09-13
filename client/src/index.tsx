@@ -1,3 +1,5 @@
+import { ThemeProvider } from '@emotion/react';
+import { createTheme } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -17,11 +19,15 @@ export const queryClient = new QueryClient({
     }
 });
 
+const theme = createTheme();
+
 root.render(
     <React.StrictMode>
-        <QueryClientProvider client={ queryClient } >
-            <Test />
-        </QueryClientProvider>
+        <ThemeProvider theme={theme}>
+            <QueryClientProvider client={ queryClient } >
+                <Test />
+            </QueryClientProvider>
+        </ThemeProvider>
     </React.StrictMode>
 );
 
