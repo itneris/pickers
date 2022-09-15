@@ -14,6 +14,10 @@ const DatePicker = (props: IDatePickerProps) => {
     const [pickerSquare, setPickerSquare] = useState<boolean>();
 
     useEffect(() => {
+        setValue(props.value);
+    }, [props.value]);
+
+    useEffect(() => {
         if (props.pickerVariant === "static") {
             setOpen(true);
             if (props.elevation === 8) {
@@ -107,12 +111,12 @@ const DatePicker = (props: IDatePickerProps) => {
                     InputProps={{
                         readOnly: !props.editable! || props.readOnly,
                         endAdornment: props.endAdornment ??
-                            <IconButton 
-                                onClick={handleAdormentClick}                            
+                            <IconButton
+                                onClick={handleAdormentClick}
                             >
                                 <Event />
                             </IconButton>
-                        
+
                     }}
                     inputProps={{
                         style: !props.editable ? { cursor: "pointer" } : undefined
@@ -122,7 +126,8 @@ const DatePicker = (props: IDatePickerProps) => {
                     placeholder={props.placeholder}
                     helperText={props.helperText}
                     variant={props.variant}
-                    disabled={props.disabled}                 
+                    disabled={props.disabled}
+                    fullWidth={props.fullWidth}
                 />
                 
             }
@@ -167,7 +172,8 @@ DatePicker.defaultProps = {
     elevation: 8,
     rounded: false,
     square: true,
-    editable: false
+    editable: false,
+    fullWidth: false
 };
 
 export default DatePicker;

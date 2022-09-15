@@ -14,4 +14,5 @@ export default interface IDatePickerProps extends IDatePickerBaseProps {
     margin?: "none" | "dense" | "normal";
     size?: "small" | "medium";
     endAdornment?: React.ReactNode;
+    fullWidth?: boolean;
 }

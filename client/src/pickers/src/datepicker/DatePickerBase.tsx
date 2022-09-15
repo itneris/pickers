@@ -1,6 +1,6 @@
 import "./DatePickerBase.css";
 import "../common/base.css";
-import React, { ButtonHTMLAttributes, useCallback, useMemo, useRef, useState } from "react";
+import React, { ButtonHTMLAttributes, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PickerToolbar from "../common/PickerToolbar";
 import PickerContent from "../common/PickerContent";
 import IDatePickerBaseProps from "../props/IDatePickerBaseProps";
@@ -46,6 +46,11 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
     const [pickerMonth, setPickerMonth] = useState<Date | null>(props.value === null ? null : startOfMonth(new Date(props.value)));
     const [selectedDate, setSelectedDate] = useState<Date | null>(props.value === null ? null : new Date(props.value));
     const [currentView, setCurrentView] = useState<"date" | "year" | "month" | "hours" | "minutes">("date");
+
+    useEffect(() => {
+        setPickerMonth(props.value === null ? null : startOfMonth(new Date(props.value)))
+        setSelectedDate(props.value === null ? null : new Date(props.value));
+    }, [props.value])
 
     //TODO
     const handleYearClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
