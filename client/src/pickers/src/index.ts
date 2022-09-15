@@ -1,5 +1,5 @@
-import DatePicker from './datepicker/DatePicker';
+import ItnDatePicker from './datepicker/DatePicker';
 
 export {
-    DatePicker
+    ItnDatePicker
 };

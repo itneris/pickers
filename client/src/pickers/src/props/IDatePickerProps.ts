@@ -1,23 +1,17 @@
-export default interface IDatePickerProps {
-    disableToolbar?: boolean;
-    className?: string;
-    style?: React.CSSProperties;
-    orientation?: "portrait" | "landscape";
-    color?: "success" | "error" | "primary" | "secondary" | "info";
-    maxMonthColumns?: number;
-    displayMonths?: number;
-    minDate?: Date;
-    maxDate?: Date;
-    value: string | null;
-    fixYear?: number;
-    fixDay?: number;
-    fixMonth?: number;
-    showWeekNumbers?: boolean;
-    isDateDisabledFunc?: (date: Date) => boolean;
-    pickerVariant?: "static" | "inline" | "dialog";
-    autoClose?: boolean;
-    readOnly?: boolean;
-    pickerActions?: (selectedDate: Date) => React.ReactNode;
-    onClose?: (selected: boolean) => void;
-    onChange?: (isoDate: string) => void;
+import React from "react";
+import IDatePickerBaseProps from "./IDatePickerBaseProps";
+
+export default interface IDatePickerProps extends IDatePickerBaseProps {
+    elevation?: number;
+    rounded?: boolean;
+    square?: boolean;
+    editable?: boolean;
+    disabled?: boolean;
+    label?: string;
+    placeholder?: string;
+    helperText?: string;
+    variant?: "standard" | "filled" | "outlined";
+    margin?: "none" | "dense" | "normal";
+    size?: "small" | "medium";
+    endAdornment?: React.ReactNode;
 }

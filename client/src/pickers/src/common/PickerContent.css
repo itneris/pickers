@@ -1,0 +1,9 @@
+.itn-picker-content {
+    display: flex;
+    max-width: 100%;
+    min-width: 310px;
+    min-height: 305px;
+    overflow: hidden;
+    flex-direction: column;
+    justify-content: center;
+}

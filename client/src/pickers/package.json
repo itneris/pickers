@@ -1,7 +1,7 @@
 {
   "name": "@itneris/pickers",
   "version": "1.0.0",
-  "description": "Custom ItNeris organization web-form and controls based on MaterialUI",
+  "description": "Custom ItNeris organization datepicker based on MaterialUI",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.3.0",
@@ -50,14 +50,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/itneris/controls.git"
+    "url": "git+https://github.com/itneris/pickers.git"
   },
   "author": "itneris",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/itneris/controls/issues"
+    "url": "https://github.com/itneris/pickers/issues"
   },
-  "homepage": ".https://github.com/itneris/controls#readme",
+  "homepage": ".https://github.com/itneris/pickers#readme",
   "browserslist": {
     "production": [
       ">0.2%",
