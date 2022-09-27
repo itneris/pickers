@@ -1,12 +1,12 @@
-import "./DatePicker.css";
+import "./TimePicker.css";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import IDatePickerProps from "../props/IDatePickerProps";
 import { IconButton, Modal, Paper, Popover, TextField } from "@mui/material";
-import DatePickerBase from "./DatePickerBase";
+import TimePickerBase from "./TimePickerBase";
 import format from "date-fns/format";
-import { Event } from "@mui/icons-material";
+import { AccessTime, Event } from "@mui/icons-material";
 
-const DatePicker = (props: IDatePickerProps) => {
+const TimePicker = (props: IDatePickerProps) => {
     const [open, setOpen] = useState<boolean>();
     const [anchorEl, setAnchorEl] = useState<Element | null>(null);
     const [value, setValue] = useState<string | null>(props.value);
@@ -41,7 +41,11 @@ const DatePicker = (props: IDatePickerProps) => {
     }, [props.onClose, setOpen]);
 
     const handleChange = useCallback((date: string) => {
-        setValue(date);
+        if (date === "") {
+            setValue(null);
+        } else {
+            setValue(date);
+        }
         props.onChange!(date);
     }, [props.onChange, setValue]);
 
@@ -58,26 +62,16 @@ const DatePicker = (props: IDatePickerProps) => {
             square={pickerSquare}
             className={classes}
         >
-            <DatePickerBase
+            <TimePickerBase
                 autoClose={props.autoClose}
                 className={props.className}
                 color={props.color}
                 disableToolbar={props.disableToolbar}
-                displayMonths={props.displayMonths}
-                fixDay={props.fixDay}
-                fixMonth={props.fixMonth}
-                fixYear={props.fixYear}
-                isDateDisabledFunc={props.isDateDisabledFunc}
-                maxDate={props.maxDate}
-                maxMonthColumns={props.maxMonthColumns}
-                minDate={props.minDate}
                 onChange={handleChange}
                 onClose={handleClose}
-                orientation={props.orientation}
                 pickerActions={props.pickerActions}
                 pickerVariant={props.pickerVariant}
                 readOnly={props.readOnly}
-                showWeekNumbers={props.showWeekNumbers}
                 value={value}
             />
         </Paper>
@@ -122,7 +116,7 @@ const DatePicker = (props: IDatePickerProps) => {
                                 onClick={handleAdormentClick}
                                 disabled={props.disabled}
                             >
-                                <Event />
+                                <AccessTime />
                             </IconButton>
 
                     }}
@@ -158,7 +152,7 @@ const DatePicker = (props: IDatePickerProps) => {
     );
 }
 
-DatePicker.defaultProps = {
+TimePicker.defaultProps = {
     disableToolbar: false,
     className: "",
     orientation: "portrait",
@@ -184,4 +178,4 @@ DatePicker.defaultProps = {
     fullWidth: false
 };
 
-export default DatePicker;
+export default TimePicker;

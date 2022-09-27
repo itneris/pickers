@@ -1,18 +1,5 @@
-import React from "react";
 import IDatePickerBaseProps from "./IDatePickerBaseProps";
+import IPickerInputProps from "./IPickerInputProps";
 
-export default interface IDatePickerProps extends IDatePickerBaseProps {
-    elevation?: number;
-    rounded?: boolean;
-    square?: boolean;
-    editable?: boolean;
-    disabled?: boolean;
-    label?: string;
-    placeholder?: string;
-    helperText?: string;
-    variant?: "standard" | "filled" | "outlined";
-    margin?: "none" | "dense" | "normal";
-    size?: "small" | "medium";
-    endAdornment?: React.ReactNode;
-    fullWidth?: boolean;
+export default interface IDatePickerProps extends IDatePickerBaseProps, IPickerInputProps {
 }

@@ -1,0 +1,10 @@
+.itn-picker-container {
+    display: flex;
+    flex-direction: column;
+    border-radius: inherit;
+}
+
+.itn-picker-view.itn-picker-open {
+    display: block;
+    animation: mud-animation-fadein 251ms;
+}
