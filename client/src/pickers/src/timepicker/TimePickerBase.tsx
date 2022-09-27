@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import "./TimePickerBase.css";
 import "../common/base.css";
 import PickerToolbar from "../common/PickerToolbar";
@@ -27,14 +27,12 @@ const TimePickerBase = (props: ITimePickerBaseProps) => {
     const theme = useTheme();
 
     const [currentView, setCurrentView] = useState<"date" | "year" | "month" | "hours" | "minutes">("hours");
-    const [timeIntermediate, setTimeIntermidiate] = useState<Date | null>(null);
-    const [timeSet, setTimeSet] = useState<TimeSet>(new TimeSet());
-    const [initialMinute, setInitialMinute] = useState<number>(0);
-    const [initialHour, setInitialHour] = useState<number>(0);
+    const [timeIntermediate, setTimeIntermediate] = useState<Date | null>(props.value === null ? null : new Date(props.value));
+    const [timeSet, setTimeSet] = useState<TimeSet>(props.value === null ? new TimeSet() : { hour: new Date(props.value).getHours(), minute: new Date(props.value).getMinutes() } as TimeSet);
+    const [initialMinute,] = useState<number>(props.value === null ? 0 : new Date(props.value).getMinutes());
+    const [initialHour,] = useState<number>(props.value === null ? 0 : new Date(props.value).getHours());
 
     const [mouseDown, setMouseDown] = useState(false);
-
-    useEffect(() => { }, [props.value]);
 
     const handleHourClick = useCallback(() => {
         setCurrentView("hours");
@@ -49,14 +47,14 @@ const TimePickerBase = (props: ITimePickerBaseProps) => {
             return "--";
 
         const h = props.amPm ? toAmPmHour(timeIntermediate) : timeIntermediate.getHours();
-        return Math.min(23, Math.max(0, h)).toLocaleString("ru-RU");
+        return Math.min(23, Math.max(0, h)).toLocaleString("en-US", { minimumIntegerDigits: 2 });
     }, [timeIntermediate, props.amPm]);
 
     const minutesString = useMemo(() => {
         if (timeIntermediate == null)
             return "--";
 
-        return Math.min(59, Math.max(0, timeIntermediate.getMinutes()));
+        return Math.min(59, Math.max(0, timeIntermediate.getMinutes())).toLocaleString("en-US", { minimumIntegerDigits: 2 });
     }, [timeIntermediate]);
 
     const getTransform = useCallback((angle: number, radius: number, offsetX: number, offsetY: number) => {
@@ -92,19 +90,31 @@ const TimePickerBase = (props: ITimePickerBaseProps) => {
         return style;
     }, [currentView, timeSet, props.amPm, theme, props.color, getTransform]); 
 
-    const submit = useCallback(() => {
+    const submit = useCallback((value: Date | null) => {
         if (props.readOnly) {
             return;
         }
 
-        props.onChange!(timeIntermediate === null ? "" : format(timeIntermediate, "HH:mm"));
+        props.onChange!(value === null ? "" : value.toISOString());
     }, [props.onChange, props.readOnly]);
 
-    const submitAndClose = useCallback(() => {
+    const submitAndClose = useCallback((value: Date | null) => {
         if (props.pickerActions === null || props.autoClose) {
-            submit();
+            submit(value);
+            if (props.pickerVariant !== "static") {
+                props.onClose!(false);
+            }
         }
-    }, [props.onChange, props.readOnly]);
+    }, [props.onChange, props.pickerVariant, props.readOnly, props.onClose]);
+
+
+    const updateTime = useCallback((value: TimeSet) => {
+        const newVal = new Date(1, 1, 1, value.hour, value.minute);
+        setTimeIntermediate(newVal);
+        if ((props.pickerVariant === "static" && props.pickerActions === null) || (props.pickerActions !== null && props.autoClose)) {
+            submit(newVal);
+        }
+    }, [setTimeIntermediate, props.pickerVariant, props.pickerActions, props.autoClose, submit]);
 
     const handleMouseClickHour = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>, value: number) => {
         e.stopPropagation();
@@ -115,32 +125,60 @@ const TimePickerBase = (props: ITimePickerBaseProps) => {
             else if (IsPm && value < 12)
                 h = value + 12;*/
         }
-        setTimeSet({
+        const newVal = {
             hour: h,
             minute: timeSet.minute
-        } as TimeSet);
+        } as TimeSet;
+        setTimeSet(newVal);
+        updateTime(newVal);
 
         if (props.timeEditMode === "normal") {
             setCurrentView("minutes");
         } else if (props.timeEditMode === "onlyHours") {
-            submitAndClose();
+            submitAndClose(new Date(1, 1, 1, h));
         }
-    }, [props.amPm, setTimeSet, timeSet, props.timeEditMode, setCurrentView]);
+    }, [props.amPm, setTimeSet, timeSet, props.timeEditMode, setCurrentView, updateTime]);
+
+    const handleMouseClickMinute = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>, value: number) => {
+        e.stopPropagation();
+
+        const newVal = {
+            hour: timeSet.hour,
+            minute: value
+        } as TimeSet;
+        setTimeSet(newVal);
+        updateTime(newVal);
+
+        submitAndClose(new Date(1, 1, 1, timeSet.hour, value));
+    }, [setTimeSet, timeSet, submitAndClose, updateTime]);
 
     const handleMouseOverHour = useCallback((value: number) => {
         if (mouseDown) {
-            setTimeSet({
+            const newVal = {
                 hour: value,
                 minute: timeSet.minute
-            } as TimeSet);
+            } as TimeSet;
+            setTimeSet(newVal);
+            updateTime(newVal);
         }
-    }, [mouseDown, setTimeSet, timeSet]);
+    }, [mouseDown, setTimeSet, timeSet, updateTime]);
+
+    const handleMouseOverMinute = useCallback((value: number) => {
+        if (mouseDown) {
+            const newVal = {
+                hour: timeSet.hour,
+                minute: value
+            } as TimeSet;
+            setTimeSet(newVal);
+            updateTime(newVal);
+        }
+    }, [mouseDown, setTimeSet, timeSet, updateTime]);
 
     const handleMouseDown = useCallback(() => setMouseDown(true), [setMouseDown]);
     const handleMouseUp = useCallback(() => {
-        if (mouseDown && currentView === "minutes" && timeSet.minute !== initialMinute || currentView == "hours" && timeSet.hour != initialHour && props.timeEditMode === "onlyHours") {
+        if (mouseDown && ((currentView === "minutes" && timeSet.minute !== initialMinute) || (currentView === "hours" && timeSet.hour !== initialHour && props.timeEditMode === "onlyHours"))) {
             setMouseDown(false);
-            submitAndClose();
+            submitAndClose(new Date(1, 1, 1, timeSet.minute, timeSet.hour));
         }
 
         setMouseDown(false);
@@ -186,13 +224,6 @@ const TimePickerBase = (props: ITimePickerBaseProps) => {
         return deg;
     }, [currentView, timeSet]);
 
-    useEffect(() => {
-        setTimeIntermidiate(new Date(1, 1, 1, timeSet.hour, timeSet.minute));
-        if ((props.pickerVariant == "static" && props.pickerActions === null) || (props.pickerActions !== null && props.autoClose)) {
-            submit();
-        }
-    }, [timeSet]);
-
     return (
         <>
             <PickerToolbar className="itn-picker-timepicker-toolbar" disableToolbar={props.disableToolbar} color={props.color!}>
@@ -231,7 +262,8 @@ const TimePickerBase = (props: ITimePickerBaseProps) => {
                                 <div
                                     className={`itn-picker-time-clock-pointer-thumb ${getDeg() % 30 === 0 ? "itn-onclock-text itn-onclock-primary" : "itn-onclock-minute"}`}
                                     style={{
-                                        backgroundColor: getDeg() % 30 === 0 ? theme.palette[props.color!].main : theme.palette[props.color!].contrastText
+                                        backgroundColor: getDeg() % 30 === 0 ? theme.palette[props.color!].main : undefined,
+                                        color: getDeg() % 30 === 0 ? undefined : theme.palette[props.color!].main
                                     }}
                                 >
                                 </div>
@@ -282,23 +314,28 @@ const TimePickerBase = (props: ITimePickerBaseProps) => {
                                         </>
                                 }
                             </div>
-                            <div className="@MinuteDialClass">   
+                            <div className={`itn-time-picker-minute ${currentView !== "minutes" ? "itn-time-picker-dial-out itn-time-picker-dial-hidden" : ""}`}>   
+                                {/* Minutes from 05 to 60 (00) - step 5 */}
                                 {
-                                    /*
-                                @*Minutes from 05 to 60 (00) - step 5*@                     
-                                @for (int i = 0; i < 12; ++i)
+                                    hoursArray.map(h => {
+                                        const _h = h - 1;
+                                        const angle = (6 - _h) * 30;
+                                        return <Typography key={"min-" + _h} sx={theme => getNumberStyle(theme, _h * 5, angle, 109, 0, 5)} className="itn-clock-number" variant="body2">{(_h * 5).toLocaleString("en-US", { minimumIntegerDigits: 2 })}</Typography>;
+                                    })
+                                }
                                 {
-                                    var _i = i;
-                                    var angle =  (6 - _i) * 30;
-                                    <MudText Class="@GetNumberColor(_i * 5)" Style="@GetTransform(angle, 109, 0, 5)">@((_i * 5).ToString("D2"))</MudText>
-                                }
-                                @for (int i = 0; i < 60; ++i)
-                                {
-                                    var _i = i;
-                                    <div class="itn-picker-stick itn-minute" style="@($"transform: rotateZ({_i * 6}deg);")" @onclick="(() => OnMouseClickMinute(_i))" @onmouseover="(() => OnMouseOverMinute(_i))" @onclick:stopPropagation="true"></div>
-                                }
-                                     */
-                                }
+                                    minutesArray.map(m => {
+                                        const _m = m - 1;
+                                        return <div
+                                            key={"min-s-" + m}
+                                            className="itn-picker-stick itn-minute"
+                                            style={{ transform: `rotateZ(${_m * 6}deg)` }}
+                                            onClick={(e) => handleMouseClickMinute(e, _m)}
+                                            onMouseOver={() => handleMouseOverMinute(_m)}
+                                        >
+                                        </div>
+                                    })
+                                }        
                             </div>
                         </div>
                     </div>

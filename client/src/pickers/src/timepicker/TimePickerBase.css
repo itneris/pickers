@@ -58,6 +58,15 @@
                 position: absolute;
                 border-radius: 100%;
             }
+                .itn-picker-time-container .itn-picker-time-clock .itn-picker-time-clock-pointer .itn-picker-time-clock-pointer-thumb.itn-onclock-minute {
+                    background: transparent;
+                    border: 2px solid;
+                    width: 10px;
+                    height: 10px;
+                    top: -9px;
+                    left: -4px;
+                    box-sizing: border-box;
+                }
 
                 .itn-picker-time-container .itn-picker-time-clock .itn-picker-time-clock-pointer .itn-picker-time-clock-pointer-thumb.itn-onclock-text {
                     top: -19px;
@@ -66,6 +75,7 @@
                     height: 28px;
                     border: none;
                     background-color: inherit;
+                    box-sizing: border-box;
                 }
 
             .itn-picker-time-container .itn-picker-time-clock .itn-picker-time-clock-pointer.itn-picker-time-clock-pointer-animation {
@@ -95,6 +105,17 @@
             position: absolute;
             transform-origin: center bottom 0;
         }
+            .itn-picker-time-container .itn-picker-time-clock .itn-picker-stick.itn-minute:after {
+                content: "";
+                position: absolute;
+                left: 50%;
+                transform: translate(-50%,-50%);
+                height: 44px;
+                width: 15px;
+                top: 20px;
+                border-radius: 50%;
+                background-color: inherit;
+            }
 
         .itn-picker-time-container .itn-picker-time-clock .itn-picker-stick-inner {
             left: calc(50% - 1px);

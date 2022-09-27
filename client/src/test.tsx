@@ -5,6 +5,7 @@ import { ItnDatePicker, ItnTimePicker } from "./pickers/src";
 
 const TestComnonent = () => {
     const [date, setDate] = useState<string>(new Date().toISOString());
+    const [time, setTime] = useState<string>(new Date().toISOString());
 
     return (
         <>
@@ -18,8 +19,8 @@ const TestComnonent = () => {
             <ItnDatePicker color="secondary" value={date} onChange={setDate} size="small" label="Выберите дату" />
             <div style={{ marginBottom: 8}}>DatePicker disabled</div>
             <ItnDatePicker color="secondary" value={date} onChange={setDate} size="small" label="Выберите дату" disabled />
-            <div style={{ marginBottom: 8 }}>Timepicker</div>
-            <ItnTimePicker color="secondary" value={date} /*onChange={setDate}*/ size="small" label="Выберите время" />
+            <div style={{ marginBottom: 8 }}>Timepicker с выбранным значением: {format(new Date(time), "HH:mm")}</div>
+            <ItnTimePicker color="secondary" value={time} onChange={setTime} size="small" label="Выберите время" />
         </>
     );
 }

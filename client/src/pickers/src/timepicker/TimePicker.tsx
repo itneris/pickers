@@ -124,7 +124,7 @@ const TimePicker = (props: IDatePickerProps) => {
                         style: !props.editable ? { cursor: "pointer" } : undefined
                     }}
                     onClick={handleTextFieldClick}
-                    value={value === null ? "" : format(new Date(value), "dd.MM.yyyy")}
+                    value={value === null ? "" : format(new Date(value), "HH:mm")}
                     placeholder={props.placeholder}
                     helperText={props.helperText}
                     variant={props.variant}
