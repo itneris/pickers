@@ -49,10 +49,16 @@
     justify-content: space-between;
 }
 
+    .itn-picker-calendar-header-switch .itn-picker-calendar-header-transition:hover .MuiTypography-root {
+        cursor: pointer;
+        font-weight: 600;
+    }
+
 .itn-picker-slide-transition {
     display: block;
     position: relative;
 }
+
 
 .itn-picker-calendar-header-switch .itn-picker-calendar-header-transition {
     width: 100%;
@@ -103,3 +109,55 @@
 }
 
 /*TODO Ripple effect*/
+
+.itn-picker-month-container {
+    width: 310px;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: stretch;
+}
+    .itn-picker-month-container .itn-picker-month {
+        flex: 1 0 33.33%;
+        cursor: pointer;
+        height: 60px;
+        display: flex;
+        outline: none;
+        transition: font-size 100ms cubic-bezier(.4,0,.2,1) 0ms;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 150ms cubic-bezier(.4,0,.2,1) 0ms;
+    }
+
+.itn-picker-year-container {
+    height: 300px;
+    overflow-y: auto;
+}
+    .itn-picker-year-container .itn-picker-year {
+        cursor: pointer;
+        height: 40px;
+        display: flex;
+        outline: none;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+        animation: mud-animation-fadein 500ms;
+        transition: background-color 150ms cubic-bezier(.4,0,.2,1) 0ms;
+    }
+        .itn-picker-year-container .itn-picker-year .itn-picker-year-selected {
+            margin: 10px 0;
+            font-weight: 500;
+        }
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    z-index: 1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c4c4c4;
+    border-radius: 1px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}

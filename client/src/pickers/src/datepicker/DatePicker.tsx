@@ -166,8 +166,6 @@ DatePicker.defaultProps = {
     displayMonths: 1,
     showWeekNumbers: false,
     isDateDisabledFunc: () => false,
-    minDate: new Date(1, 1, 1, 0, 0, 0, 0),
-    maxDate: new Date(9999, 12, 31, 23, 59, 59, 999),
     value: null,
     pickerVariant: "inline",
     autoClose: true,

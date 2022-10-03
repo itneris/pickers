@@ -1,6 +1,6 @@
 {
   "name": "@itneris/pickers",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "Custom ItNeris organization datepicker based on MaterialUI",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
@@ -26,12 +26,6 @@
   "babel": {
     "presets": [
       "@babel/preset-react"
-    ]
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
     ]
   },
   "scripts": {

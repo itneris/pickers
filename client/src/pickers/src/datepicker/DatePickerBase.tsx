@@ -4,7 +4,7 @@ import React, { ButtonHTMLAttributes, useCallback, useEffect, useMemo, useRef, u
 import PickerToolbar from "../common/PickerToolbar";
 import PickerContent from "../common/PickerContent";
 import IDatePickerBaseProps from "../props/IDatePickerBaseProps";
-import { Button, IconButton, styled, Theme, Typography, useTheme } from "@mui/material";
+import { Box, Button, IconButton, styled, Theme, Typography, useTheme } from "@mui/material";
 import { format, addMonths, addYears, startOfDay, startOfYear, startOfMonth, startOfWeek, addDays, endOfMonth, eachDayOfInterval, endOfWeek } from "date-fns";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 const { ru } = require('date-fns/locale');
@@ -19,6 +19,15 @@ const DayText = styled('p')(
         color: "inherit"
     })
 );
+
+
+const MonthButton = styled('button')(
+    ({ theme }: { theme: Theme }) => ({
+        "&:hover": {
+            backgroundColor: theme.palette.action.hover
+        }
+    })
+)
 
 interface IDayButtonProps extends React.DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> {
     selected: boolean,
@@ -52,13 +61,20 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
         setSelectedDate(props.value === null ? null : new Date(props.value));
     }, [props.value])
 
-    //TODO
+    useEffect(() => {
+        if (currentView === "year") {
+            const offset = document.getElementById(`cmpYear-${(pickerMonth ?? new Date()).getFullYear()}`)?.offsetTop ?? 0;
+            document.getElementById("pickerYears")!.scrollTop = offset - 230;
+        }
+    }, [currentView])
+
     const handleYearClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
-    }, []);
+        if (props.fixYear === null) {
+            setCurrentView("year");
+        }
+    }, [props.fixYear, setCurrentView]);
 
-    //TODO
-    const handleYearClicked = useCallback((year: number) => { }, []);
 
     const getMonthStart = useCallback((month: number): Date => {
         const monthStartDate = pickerMonth ?? startOfMonth(new Date());
@@ -68,6 +84,7 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
         }
         return addMonths(monthStartDate, month);
     }, [pickerMonth]);
+
 
     const getMonthEnd = useCallback((month: number): Date => {
         const monthStartDate = pickerMonth ?? startOfMonth(new Date());
@@ -83,41 +100,12 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
         if (dateToFormat === null) {
             return "";
         }
-        return format(dateToFormat, "eee, dd MMM", { locale: ru });
-    }, [selectedDate]);
+        return format(dateToFormat, "eee, dd MMM", { locale: props.locale });
+    }, [selectedDate, props.locale]);
 
 
     //TODO
     const handleFormattedDateClick = useCallback(() => { }, []);
-
-    const minYear = useMemo(() => {
-        if (props.minDate) {
-            return props.minDate.getFullYear();
-        }
-        const date = new Date();
-        return addYears(startOfDay(date), -100).getFullYear();
-    }, [props.minDate]);
-
-    const maxYear = useMemo(() => {
-        if (props.maxDate) {
-            return props.maxDate.getFullYear();
-        }
-        const date = new Date();
-        return addYears(startOfDay(date), 100).getFullYear();
-    }, [props.maxDate]);
-
-    const getYearTypo = useCallback((year: number) => {
-        if (year === getMonthStart(0).getFullYear())
-            return "h5";
-        return "subtitle1";
-    }, [getMonthStart]);
-
-    const getYearClasses = useCallback((year: number) => {
-        if (year === getMonthStart(0).getFullYear())
-            //TODO посмотреть стили текста
-            return `itn-picker-year-selected itn-${props.color}-text`;
-        return undefined;
-    }, [getMonthStart, props.color]);
 
     const getCalendarYear = useCallback((year: number) => {
         const date = selectedDate ?? startOfDay(new Date());
@@ -125,27 +113,6 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
         const calenderYear = date.getFullYear();
         return calenderYear - diff;
     }, [selectedDate]);
-
-    const renderYears = useMemo(() => {
-        let years: React.ReactNode[] = [];
-        for (let i = minYear; i <= maxYear; i++) {
-            const year = i;
-            years.push(
-                <div
-                    className="itn-picker-year"
-                    id={"_componentId" + year}
-                    key={"_componentId" + year}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleYearClicked(year);
-                    }}
-                >
-                    <Typography variant={getYearTypo(year)} className={getYearClasses(year)}>{getCalendarYear(year)}</Typography>
-                </div>
-            );
-        }
-        return years;
-    }, [getYearTypo, getYearClasses, getCalendarYear, handleYearClicked, maxYear, minYear]);
 
     const allMonths = useMemo(() => {
         const current = getMonthStart(0);
@@ -159,23 +126,23 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
     }, [getMonthStart]);
 
     const getMonthName = useCallback((month: Date) => {
-        return format(month, "LLLL", { locale: ru });
-    }, []);
+        return format(month, "LLLL", { locale: props.locale });
+    }, [props.locale]);
 
     const getMonthNameByNumber = useCallback((num: number) => {
         const month = getMonthStart(num);
-        return format(month, "LLLL yyyy", { locale: ru });
-    }, [getMonthStart]);
+        return format(month, "LLLL yyyy", { locale: props.locale });
+    }, [getMonthStart, props.locale]);
 
     const getNextView = useCallback(() => {
         let nextView: "year" | "month" | "date" | null;
         switch (currentView) {
             case "year": {
-                nextView = props.fixMonth === undefined ? "month" : props.fixDay === undefined ? "date" : null;
+                nextView = props.fixMonth === null ? "month" : props.fixDay === null ? "date" : null;
                 break;
             }
             case "month": {
-                nextView = props.fixDay === undefined ? "date" : null;
+                nextView = props.fixDay === null ? "date" : null;
                 break;
             }
             default: {
@@ -184,6 +151,47 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
         };
         return nextView;
     }, [currentView, props.fixMonth, props.fixDay]);
+
+    const handleYearClicked = useCallback((year: number) => {
+        const current = getMonthStart(0);
+        setPickerMonth(new Date(year, current.getMonth(), 1));
+        const nextView = getNextView();
+        if (nextView !== null) {
+            setCurrentView(nextView);
+        }
+    }, [getMonthStart, setPickerMonth, getNextView, setCurrentView]);
+
+
+    const renderYears = useMemo(() => {
+        let years: React.ReactNode[] = [];
+        const minYear = props.minDate?.getFullYear() ?? (new Date().getFullYear() - 100);
+        const maxYear = props.maxDate?.getFullYear() ?? (new Date().getFullYear() + 100);
+        for (let i = minYear; i <= maxYear; i++) {
+            const year = i;
+            const isSelected = year === getMonthStart(0).getFullYear();
+            years.push(
+                <Box
+                    className="itn-picker-year"
+                    id={"cmpYear-" + year}
+                    key={"cmpYear-" + year}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleYearClicked(year);
+                    }}
+                    sx={theme => ({ "&:hover": { backgroundColor: theme.palette.action.hover } })}
+                >
+                    <Typography
+                        variant={isSelected ? "h5" : "subtitle1"}
+                        className={isSelected ? "itn-picker-year-selected" : undefined}
+                        color={isSelected ? props.color : undefined}
+                    >
+                        {getCalendarYear(year)}
+                    </Typography>
+                </Box>
+            );
+        }
+        return years;
+    }, [getMonthStart, props.color, getCalendarYear, handleYearClicked, props.minDate, props.maxDate]);
 
     const handleMonthSelected = useCallback((month: Date) => {
         setPickerMonth(month);
@@ -194,21 +202,14 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
     }, [setPickerMonth, getNextView, setCurrentView]);
 
     const getMonthTypo = useCallback((month: Date) => {
-        if (getMonthStart(0) === month)
+        if (getMonthStart(0).getMonth() === month.getMonth())
             return "h5";
         return "subtitle1";
     }, [getMonthStart]);
 
-    const getMonthClasses = useCallback((month: Date) => {
-        if (getMonthStart(0) === month)
-            //TODO посмотреть стили текста
-            return `itn-picker-month-selected itn-${props.color}-text`;
-        return undefined;
-    }, [getMonthStart, props.color]);
-
     const getAbbreviatedMonthName = useCallback((month: Date) => {
-        return format(month, "MM");
-    }, []);
+        return format(month, "LLL", { locale: props.locale });
+    }, [props.locale]);
 
     const handlePreviousYearClick = useCallback(() => {
         setPickerMonth(addYears(getMonthStart(0), -1));
@@ -223,22 +224,6 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
         const prevLabel = `Go to previous year ${calendarYear - 1}`;
         const nextLabel = `Go to next year ${calendarYear + 1}`;
 
-        const months: React.ReactNode[] = [];
-
-        allMonths.forEach(month => {
-            months.push(
-                <button
-                    type="button"
-                    aria-label={getMonthName(month)}
-                    className="itn-picker-month"
-                    onClick={() => handleMonthSelected(month)}
-                    //@onclick: stopPropagation = "true"
-                >
-                    <Typography variant={getMonthTypo(month)} className={getMonthClasses(month)}>{getAbbreviatedMonthName(month)}</Typography>
-                </button>
-            );
-        });
-
         return (<>
             <div className="itn-picker-calendar-header">
                 <div className="itn-picker-calendar-header-switch">
@@ -250,6 +235,7 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
                                     onClick={handlePreviousYearClick}
                                     //TODO checkClass
                                     className="itn-flip-x-rtl"
+                                    sx={{ margin: "6px" }}
                                 >
                                     <ChevronLeft />
                                 </IconButton>
@@ -265,6 +251,7 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
                                     onClick={handleNextYearClick}
                                     //TODO checkClass
                                     className="itn-flip-x-rtl"
+                                    sx={{ margin: "6px" }}
                                 >
                                     <ChevronRight />
                                 </IconButton>
@@ -274,9 +261,28 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
                 </div>
             </div>
             <div className="itn-picker-month-container">
+                {
+                    allMonths.map((month, i) => {
+                        const isSelected = getMonthStart(0).getMonth() === month.getMonth();
+                        return <MonthButton
+                            key={"mon-v" + i}
+                            type="button"
+                            aria-label={getMonthName(month)}
+                            className="itn-picker-month"
+                            onClick={() => handleMonthSelected(month)}
+                        >
+                            <Typography
+                                variant={getMonthTypo(month)}
+                                sx={isSelected ? theme => ({ fontWeight: 500, color: theme.palette[props.color!].main }) : undefined}
+                            >
+                                {getAbbreviatedMonthName(month)}
+                            </Typography>
+                        </MonthButton>;
+                    })
+                }
             </div>
         </>);
-    }, [handlePreviousYearClick, handleNextYearClick, handleYearClick, getMonthTypo, getMonthClasses, getAbbreviatedMonthName, allMonths, getCalendarYear, getMonthName, handleMonthSelected, pickerMonth, props.fixYear]);
+    }, [handlePreviousYearClick, handleNextYearClick, handleYearClick, getMonthStart, getMonthTypo, getAbbreviatedMonthName, allMonths, getCalendarYear, getMonthName, handleMonthSelected, pickerMonth, props.fixYear, props.color]);
 
     const getWeek = useCallback((month: number, index: number) => {
         if (index < 0 || index > 5) { 
@@ -284,12 +290,12 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
         }
         let weekDays: Date[] = [];
         const monthFirst = getMonthStart(month);
-        const weekFirst = startOfWeek(addDays(monthFirst, index * 7), { locale: ru });
+        const weekFirst = startOfWeek(addDays(monthFirst, index * 7), { locale: props.locale });
         for (let i = 0; i < 7; i++) {
             weekDays.push(addDays(weekFirst, i));
         }
         return weekDays;
-    }, [getMonthStart]);
+    }, [getMonthStart, props.locale]);
 
     const getDayClasses = useCallback((month: number, day: Date) => {
         let classes = "itn-day";
@@ -355,11 +361,11 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
             start: startOfWeek(now),
             end: endOfWeek(now)
         });
-        const daysNames = daysInWeek.map((d) => format(d, 'eee', { locale: ru }));
+        const daysNames = daysInWeek.map((d) => format(d, 'eee', { locale: props.locale }));
         const firstDay = daysNames.shift();
         const dayNamesShifted = [...daysNames, firstDay]; //TODO shift not-hardcode Shift(dayNamesNormal, (int)GetFirstDayOfWeek());
         return dayNamesShifted;
-    }, []);
+    }, [props.locale]);
 
     const handlePreviousMonthClick = useCallback(() => {
         if (pickerMonth !== null && pickerMonth.getFullYear() === 1 && pickerMonth.getMonth() === 1) {
@@ -421,12 +427,16 @@ const DatePickerBase = (props: IDatePickerBaseProps) => {
                             style={{
                                 color: theme.palette.text.primary
                             }}
-                            aria-label={format(selectedDay, "eeee, dd MMMM yyyy", { locale: ru })}
+                            aria-label={format(selectedDay, "eeee, dd MMMM yyyy", { locale: props.locale })}
                             onMouseOver={(e) => {
                                 //@ts-ignore
                                 (e.currentTarget.closest('.itn-picker-calendar-content') as HTMLElement).style['--selected-day'] = !firstMonthFirstYear ? tempId : tempId + 1;
                             }}
-                            disabled={(selectedDay < props.minDate!) || (selectedDay > props.maxDate!) || props.isDateDisabledFunc!(selectedDay)}
+                            disabled={
+                                (props.minDate !== undefined && selectedDay < props.minDate) ||
+                                (props.maxDate !== undefined && selectedDay > props.maxDate) ||
+                                props.isDateDisabledFunc!(selectedDay)
+                            }
                         >
                             <DayText>{getCalendarDayOfMonth(selectedDay)}</DayText>
                         </DayButton>
@@ -563,8 +573,6 @@ DatePickerBase.defaultProps = {
     displayMonths: 1,
     showWeekNumbers: false,
     isDateDisabledFunc: () => false,
-    minDate: new Date(1, 1, 1, 0, 0, 0, 0),
-    maxDate: new Date(9999, 12, 31, 23, 59, 59, 999),
     value: null,
     pickerVariant: "inline",
     autoClose: true,
@@ -573,7 +581,8 @@ DatePickerBase.defaultProps = {
     fixMonth: null,
     fixYear: null,
     fixDay: null,
-    onChange: () => { }
+    onChange: () => { },
+    locale: ru
 };
 
 export default DatePickerBase;

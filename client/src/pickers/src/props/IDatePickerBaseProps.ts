@@ -12,4 +12,5 @@ export default interface IDatePickerBaseProps extends IPickerBaseProps {
     fixMonth?: number;
     showWeekNumbers?: boolean;
     isDateDisabledFunc?: (date: Date) => boolean;
+    locale?: Locale;
 }
